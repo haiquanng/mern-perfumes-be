@@ -8,7 +8,10 @@
     "start": "node server.js",
     "lint": "echo 'no linter configured'",
     "generate-jwt": "node scripts/generate-jwt.js",
-    "setup": "npm run generate-jwt && npm run dev"
+    "seed": "node scripts/seedDatabase.js",
+    "clear": "node scripts/clearDatabase.js",
+    "reset": "npm run clear && npm run seed",
+    "setup": "npm run generate-jwt && npm run seed && npm run dev"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
