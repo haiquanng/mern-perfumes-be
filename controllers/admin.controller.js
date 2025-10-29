@@ -34,17 +34,19 @@ export const getStats = asyncHandler(async (req, res) => {
     // Count total comments/reviews
     Comment.countDocuments(),
 
-    // Calculate average rating across all products
+    // Calculate average rating across products that have ratings
+    // Only include products with averageRating > 0 to avoid counting unrated products
     Perfume.aggregate([
+      {
+        $match: {
+          averageRating: { $gt: 0 } // Only products with ratings
+        }
+      },
       {
         $group: {
           _id: null,
           averageRating: { $avg: '$averageRating' },
-          totalWithRatings: {
-            $sum: {
-              $cond: [{ $gt: ['$averageRating', 0] }, 1, 0]
-            }
-          }
+          totalWithRatings: { $sum: 1 } // Count of products with ratings
         }
       }
     ])
