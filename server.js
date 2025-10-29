@@ -8,6 +8,9 @@ import cookieParser from 'cookie-parser';
 // Import database connection
 import connectDB from './config/database.js';
 
+// Import Firebase config
+import { initializeFirebase } from './config/firebase.js';
+
 // Import middleware
 import errorHandler from './middleware/errorMiddleware.js';
 import { requestLogger } from './utils/logger.js';
@@ -25,6 +28,15 @@ dotenv.config();
 
 // Connect to database
 connectDB();
+
+// Initialize Firebase (optional - only if credentials are provided)
+try {
+  if (process.env.FIREBASE_PROJECT_ID) {
+    initializeFirebase();
+  }
+} catch (error) {
+  console.warn('Firebase not initialized:', error.message);
+}
 
 const app = express();
 

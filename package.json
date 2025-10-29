@@ -9,11 +9,11 @@
     "lint": "echo 'no linter configured'",
     "kill-port": "lsof -ti:${PORT:-4000} | xargs kill -9 2>/dev/null || echo 'Port already free'",
     "dev:clean": "npm run kill-port && npm run dev",
-    "generate-jwt": "node scripts/generate-jwt.js",
-    "seed": "node scripts/seedDatabase.js",
-    "clear": "node scripts/clearDatabase.js",
-    "reset": "npm run clear && npm run seed",
-    "setup": "npm run generate-jwt && npm run seed && npm run dev"
+    "create-admin": "node scripts/createAdmin.js",
+    "seed:brands": "node scripts/seedBrands.js",
+    "seed:admin": "node scripts/createAdmin.js",
+    "seed:all": "npm run seed:admin && npm run seed:brands",
+    "test:admin": "node test-admin-stats.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -21,6 +21,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "firebase-admin": "^13.5.0",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.6.1",
@@ -28,5 +29,3 @@
     "zod": "^3.23.8"
   }
 }
-
-

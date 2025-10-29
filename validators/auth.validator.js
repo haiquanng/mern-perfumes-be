@@ -39,3 +39,9 @@ export const changePasswordSchema = z.object({
       .regex(/[0-9]/, 'Password must contain at least one number')
   })
 });
+
+export const googleLoginSchema = z.object({
+  body: z.object({
+    idToken: z.string().min(1, 'Firebase ID token is required')
+  })
+});

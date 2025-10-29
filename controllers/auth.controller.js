@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { Member } from '../models/Member.js';
 import { jwtConfig } from '../config/index.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
+import { verifyFirebaseToken } from '../config/firebase.js';
 
 export const register = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
@@ -54,6 +55,58 @@ export const changePassword = asyncHandler(async (req, res) => {
 export const logout = asyncHandler(async (req, res) => {
   res.clearCookie(jwtConfig.cookieName);
   res.json({ message: 'Logged out' });
+});
+
+/**
+ * Google Login with Firebase
+ * Client sends Firebase ID token, backend verifies and creates/logs in user
+ */
+export const googleLogin = asyncHandler(async (req, res) => {
+  const { idToken } = req.body;
+
+  // Verify Firebase token
+  const decodedToken = await verifyFirebaseToken(idToken);
+
+  // Extract user info from Firebase token
+  const { uid, email, name, picture } = decodedToken;
+
+  if (!email) {
+    return res.status(400).json({ message: 'Email not found in Google account' });
+  }
+
+  // Check if user exists
+  let user = await Member.findOne({ email });
+
+  if (user) {
+    // User exists - update Firebase UID if needed
+    if (!user.firebaseUid) {
+      user.firebaseUid = uid;
+      await user.save();
+    }
+  } else {
+    // Create new user with Google info
+    user = await Member.create({
+      name: name || email.split('@')[0], // Use email prefix if name not provided
+      email,
+      firebaseUid: uid,
+      password: await bcrypt.hash(uid + process.env.JWT_SECRET, 10), // Random password
+      isAdmin: false,
+      googleAvatar: picture || null
+    });
+  }
+
+  // Sign JWT and set cookie
+  signAndSetCookie(res, user);
+
+  // Return user info
+  return res.json({
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    isAdmin: user.isAdmin,
+    avatar: user.googleAvatar || null,
+    loginMethod: 'google'
+  });
 });
 
 
