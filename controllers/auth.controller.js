@@ -23,9 +23,9 @@ function signAndSetCookie(res, member) {
 export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const user = await Member.findOne({ email });
-  if (!user) return res.status(401).json({ message: 'Invalid credentials' });
+  if (!user) return res.status(401).json({ message: 'Wrong email!' });
   const ok = await bcrypt.compare(password, user.password);
-  if (!ok) return res.status(401).json({ message: 'Invalid credentials' });
+  if (!ok) return res.status(401).json({ message: 'Wrong password!' });
   signAndSetCookie(res, user);
   return res.json({ id: user._id, name: user.name, email: user.email, isAdmin: user.isAdmin });
 });
