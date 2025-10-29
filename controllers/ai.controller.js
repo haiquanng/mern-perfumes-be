@@ -8,11 +8,9 @@ export const getSimilar = asyncHandler(async (req, res) => {
   const { perfumeId } = req.params;
   const { forceRefresh } = req.query;
 
-  // Lấy thông tin perfume với brand
   const perfume = await Perfume.findById(perfumeId).populate('brand', 'brandName');
   if (!perfume) return res.status(404).json({ message: 'Perfume not found' });
 
-  // Kiểm tra cache nếu không force refresh
   if (!forceRefresh) {
     const cache = await GeminiCache.findOne({ perfumeId });
     if (cache?.similarPerfumes?.length) {
@@ -26,7 +24,6 @@ export const getSimilar = asyncHandler(async (req, res) => {
     }
   }
 
-  // Nếu không có cache hoặc force refresh, dùng AI phân tích
   try {
     const similarIds = await geminiService.analyzeSimilarPerfumes(perfume);
 
@@ -135,15 +132,12 @@ export const chat = asyncHandler(async (req, res) => {
       context.perfumes = perfumes;
     }
 
-    // Nếu request streaming
     if (stream) {
-      // Set headers cho Server-Sent Events
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('Connection', 'keep-alive');
-      res.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering
+      res.setHeader('X-Accel-Buffering', 'no'); 
 
-      // Send initial connection event
       res.write(`data: ${JSON.stringify({ type: 'connected', timestamp: new Date() })}\n\n`);
 
       try {
@@ -152,7 +146,6 @@ export const chat = asyncHandler(async (req, res) => {
           res.write(`data: ${JSON.stringify({ type: 'chunk', content: chunk })}\n\n`);
         }
 
-        // Send completion event
         res.write(`data: ${JSON.stringify({ type: 'done', timestamp: new Date() })}\n\n`);
         res.end();
       } catch (streamError) {
@@ -160,7 +153,6 @@ export const chat = asyncHandler(async (req, res) => {
         res.end();
       }
     } else {
-      // Non-streaming response (normal)
       const reply = await geminiService.chat(query, context);
 
       return res.json({

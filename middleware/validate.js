@@ -1,9 +1,5 @@
 import { ZodError } from 'zod';
 
-/**
- * Validation middleware factory
- * Validates request data against Zod schema
- */
 export const validate = (schema) => {
   return async (req, res, next) => {
     try {

@@ -1,15 +1,12 @@
 import jwt from 'jsonwebtoken';
 import { Member } from '../models/Member.js';
 
-// Protect routes - check both Bearer token and cookie
 export const requireAuth = async (req, res, next) => {
   let token;
 
-  // Check for Bearer token in header
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
   }
-  // Check for token in cookie
   else if (req.cookies && req.cookies.access_token) {
     token = req.cookies.access_token;
   }
@@ -19,10 +16,8 @@ export const requireAuth = async (req, res, next) => {
   }
 
   try {
-    // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Get user from the token
     req.user = await Member.findById(decoded.id).select('-password');
 
     if (!req.user) {
@@ -36,7 +31,6 @@ export const requireAuth = async (req, res, next) => {
   }
 };
 
-// Grant access to specific roles
 export const authorize = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {
@@ -52,7 +46,6 @@ export const authorize = (...roles) => {
   };
 };
 
-// Check if user is admin
 export const isAdmin = (req, res, next) => {
   if (!req.user || !req.user.isAdmin) {
     return res.status(403).json({ message: 'Access denied. Admin only.' });

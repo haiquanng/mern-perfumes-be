@@ -2,21 +2,17 @@ import bcrypt from 'bcryptjs';
 import { Member } from '../models/Member.js';
 
 export const userService = {
-  // Create user
   async createUser(userData) {
     const { name, email, password, yob, gender } = userData;
     
-    // Check if user exists
     const existingUser = await Member.findOne({ email });
     if (existingUser) {
       throw new Error('User already exists');
     }
 
-    // Hash password
     const saltRounds = 12;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Create user
     const user = await Member.create({
       name,
       email,
@@ -29,7 +25,6 @@ export const userService = {
     return user;
   },
 
-  // Get user by ID
   async getUserById(id) {
     const user = await Member.findById(id).select('-password');
     if (!user) {
@@ -52,7 +47,6 @@ export const userService = {
     return user;
   },
 
-  // Delete user
   async deleteUser(id) {
     const user = await Member.findByIdAndDelete(id);
     if (!user) {
@@ -61,12 +55,10 @@ export const userService = {
     return user;
   },
 
-  // Get all users
   async getAllUsers() {
     return await Member.find().select('-password');
   },
 
-  // Verify password
   async verifyPassword(plainPassword, hashedPassword) {
     return await bcrypt.compare(plainPassword, hashedPassword);
   }

@@ -7,8 +7,8 @@ const memberSchema = new Schema({
   yob: Number,
   gender: { type: Boolean },
   isAdmin: { type: Boolean, default: false },
-  firebaseUid: { type: String, unique: true, sparse: true }, // Firebase UID for Google login
-  googleAvatar: { type: String }, // Google profile picture URL
+  firebaseUid: { type: String, unique: true, sparse: true },
+  googleAvatar: { type: String }, 
 }, { timestamps: true });
 
 export const Member = mongoose.model('Members', memberSchema);
