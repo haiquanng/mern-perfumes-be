@@ -2,8 +2,9 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { Member } from '../models/Member.js';
 import { jwtConfig } from '../config/index.js';
+import { asyncHandler } from '../middleware/asyncHandler.js';
 
-export async function register(req, res) {
+export const register = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
   if (!name || !email || !password) return res.status(400).json({ message: 'Missing fields' });
   const exists = await Member.findOne({ email });
@@ -11,7 +12,7 @@ export async function register(req, res) {
   const hash = await bcrypt.hash(password, 10);
   const user = await Member.create({ name, email, password: hash });
   return res.status(201).json({ id: user._id, name: user.name, email: user.email, isAdmin: user.isAdmin });
-}
+});
 
 function signAndSetCookie(res, member) {
   const token = jwt.sign({ id: member._id, email: member.email, isAdmin: member.isAdmin }, process.env.JWT_SECRET, { expiresIn: jwtConfig.accessTokenTtlSec });
@@ -19,7 +20,7 @@ function signAndSetCookie(res, member) {
   return token;
 }
 
-export async function login(req, res) {
+export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const user = await Member.findOne({ email });
   if (!user) return res.status(401).json({ message: 'Invalid credentials' });
@@ -27,20 +28,20 @@ export async function login(req, res) {
   if (!ok) return res.status(401).json({ message: 'Invalid credentials' });
   signAndSetCookie(res, user);
   return res.json({ id: user._id, name: user.name, email: user.email, isAdmin: user.isAdmin });
-}
+});
 
-export async function me(req, res) {
+export const me = asyncHandler(async (req, res) => {
   const user = await Member.findById(req.user.id).select('-password');
   res.json(user);
-}
+});
 
-export async function updateProfile(req, res) {
+export const updateProfile = asyncHandler(async (req, res) => {
   const { name, yob, gender } = req.body;
   const updated = await Member.findByIdAndUpdate(req.user.id, { name, yob, gender }, { new: true }).select('-password');
   res.json(updated);
-}
+});
 
-export async function changePassword(req, res) {
+export const changePassword = asyncHandler(async (req, res) => {
   const { currentPassword, newPassword } = req.body;
   const user = await Member.findById(req.user.id);
   const ok = await bcrypt.compare(currentPassword, user.password);
@@ -48,11 +49,11 @@ export async function changePassword(req, res) {
   user.password = await bcrypt.hash(newPassword, 10);
   await user.save();
   res.json({ message: 'Password updated' });
-}
+});
 
-export async function logout(req, res) {
+export const logout = asyncHandler(async (req, res) => {
   res.clearCookie(jwtConfig.cookieName);
   res.json({ message: 'Logged out' });
-}
+});
 
 

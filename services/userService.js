@@ -71,3 +71,4 @@ export const userService = {
     return await bcrypt.compare(plainPassword, hashedPassword);
   }
 };
+

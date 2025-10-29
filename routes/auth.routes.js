@@ -1,14 +1,21 @@
 import { Router } from 'express';
-import { requireAuth } from '../middlewares/auth.js';
+import { requireAuth } from '../middleware/authMiddleware.js';
+import { validate } from '../middleware/validate.js';
 import { register, login, me, updateProfile, changePassword, logout } from '../controllers/auth.controller.js';
+import {
+  registerSchema,
+  loginSchema,
+  updateProfileSchema,
+  changePasswordSchema
+} from '../validators/auth.validator.js';
 
 export const registerRouter = Router();
 
-registerRouter.post('/register', register);
-registerRouter.post('/login', login);
+registerRouter.post('/register', validate(registerSchema), register);
+registerRouter.post('/login', validate(loginSchema), login);
 registerRouter.post('/logout', logout);
 registerRouter.get('/profile', requireAuth, me);
-registerRouter.put('/profile', requireAuth, updateProfile);
-registerRouter.put('/profile/password', requireAuth, changePassword);
+registerRouter.put('/profile', requireAuth, validate(updateProfileSchema), updateProfile);
+registerRouter.put('/profile/password', requireAuth, validate(changePasswordSchema), changePassword);
 
 

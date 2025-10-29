@@ -7,6 +7,8 @@
     "dev": "node --watch server.js",
     "start": "node server.js",
     "lint": "echo 'no linter configured'",
+    "kill-port": "lsof -ti:${PORT:-4000} | xargs kill -9 2>/dev/null || echo 'Port already free'",
+    "dev:clean": "npm run kill-port && npm run dev",
     "generate-jwt": "node scripts/generate-jwt.js",
     "seed": "node scripts/seedDatabase.js",
     "clear": "node scripts/clearDatabase.js",

@@ -1,34 +1,38 @@
 import jwt from 'jsonwebtoken';
 import { Member } from '../models/Member.js';
 
-// Protect routes
-export const protect = async (req, res, next) => {
+// Protect routes - check both Bearer token and cookie
+export const requireAuth = async (req, res, next) => {
   let token;
 
+  // Check for Bearer token in header
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    try {
-      // Get token from header
-      token = req.headers.authorization.split(' ')[1];
-
-      // Verify token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-      // Get user from the token
-      req.user = await Member.findById(decoded.id).select('-password');
-
-      if (!req.user) {
-        return res.status(401).json({ message: 'Not authorized, user not found' });
-      }
-
-      next();
-    } catch (error) {
-      console.error(error);
-      return res.status(401).json({ message: 'Not authorized, token failed' });
-    }
+    token = req.headers.authorization.split(' ')[1];
+  }
+  // Check for token in cookie
+  else if (req.cookies && req.cookies.access_token) {
+    token = req.cookies.access_token;
   }
 
   if (!token) {
     return res.status(401).json({ message: 'Not authorized, no token' });
+  }
+
+  try {
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Get user from the token
+    req.user = await Member.findById(decoded.id).select('-password');
+
+    if (!req.user) {
+      return res.status(401).json({ message: 'Not authorized, user not found' });
+    }
+
+    next();
+  } catch (error) {
+    console.error(error);
+    return res.status(401).json({ message: 'Not authorized, token failed' });
   }
 };
 
@@ -55,3 +59,4 @@ export const isAdmin = (req, res, next) => {
   }
   next();
 };
+
