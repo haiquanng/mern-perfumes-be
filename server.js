@@ -1,8 +1,11 @@
+// Load env vars FIRST before any imports that use them
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 
 // Import database connection
@@ -22,9 +25,6 @@ import { perfumeRouter } from './routes/perfume.routes.js';
 import { commentRouter } from './routes/comment.routes.js';
 import { adminRouter } from './routes/admin.routes.js';
 import { aiRouter } from './routes/ai.routes.js';
-
-// Load env vars
-dotenv.config();
 
 // Connect to database
 connectDB();
@@ -61,11 +61,23 @@ app.use(cors({
 }));
 
 // Health check
-app.get('/health', (req, res) => res.json({ 
-  status: 'ok', 
+app.get('/health', (req, res) => res.json({
+  status: 'ok',
   timestamp: new Date().toISOString(),
-  environment: process.env.NODE_ENV 
+  environment: process.env.NODE_ENV
 }));
+
+// Debug endpoint for API keys (remove in production)
+app.get('/debug/env', (req, res) => {
+  const geminiKey = process.env.GEMINI_API_KEY;
+  res.json({
+    gemini_key_exists: !!geminiKey,
+    gemini_key_length: geminiKey?.length || 0,
+    gemini_key_preview: geminiKey ? `${geminiKey.substring(0, 10)}...${geminiKey.substring(geminiKey.length - 5)}` : 'NOT_FOUND',
+    node_env: process.env.NODE_ENV,
+    port: process.env.PORT
+  });
+});
 
 // Mount routers
 app.use('/api', registerRouter);
